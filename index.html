@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+	<style type="text/css">
+		body{
+			margin: 0;
+		}
+	</style>
+</head>
+<body>
+<div style="background-color: #0099ff; height: 20vh; ">
+	<h3 style="color:white; text-align: center; margin: 0; padding-top: 3rem; font-size:3rem">Welcome</h3>
+</div>	
+<h2 id="logo" style=" background-color: lightblue; text-align: center; width: 10vw; position:absolute; border-radius: 25px;">Hi!</h2>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="#0099ff" fill-opacity="1" d="M0,256L60,250.7C120,245,240,235,360,240C480,245,600,267,720,266.7C840,267,960,245,1080,224C1200,203,1320,181,1380,170.7L1440,160L1440,0L1380,0C1320,0,1200,0,1080,0C960,0,840,0,720,0C600,0,480,0,360,0C240,0,120,0,60,0L0,0Z"></path></svg>
+
+<h1 id="name" style="text-align: center; margin-top: 5vh; color: red">Muntasir Alam</h1>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.6.1/gsap.min.js"></script>
+<script type="text/javascript">
+	gsap.to("#logo",{duration: 3, rotation: 360, scale: 1.5, ease: "bounce"});
+	gsap.fromTo("#logo",3,{x :  0,opacity : 0}, {x : window.innerWidth/1.5,opacity : 1}); 
+	gsap.to("#logo",3,{x : 200,y: 50, delay:3}); 
+
+	gsap.fromTo("#name",7,{y : 100,opacity : 0}, {y : 0,opacity : 1});
+</script>
+</body>
+</html>
