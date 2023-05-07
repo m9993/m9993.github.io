@@ -5,13 +5,15 @@ module.exports = {
     "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
   ],
+  darkMode: "class",
   theme: {
     extend: {
       fontFamily: {
         poppins: ["Poppins", "sans-serif"],
       },
       colors: {
-        // white: "red",
+        primary: "#d97706",
+        secondary: "#a21caf",
       },
     },
   },
