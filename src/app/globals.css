@@ -1,0 +1,11 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Poppins&display=swap');
+
+@layer components {
+  *{
+    @apply font-sans bg-white text-black dark:bg-slate-900 dark:text-white
+  }
+}
