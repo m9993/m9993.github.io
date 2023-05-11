@@ -8,11 +8,7 @@ type SocialMediaType = {
 
 export default function SocialMedia(props: SocialMediaType) {
   return (
-    <div
-      className={
-        "flex items-center gap-8 text-2xl md:text-3xl " + props.className
-      }
-    >
+    <div className={"flex items-center gap-8 " + props.className}>
       {data.social.map((item) => (
         <Link
           key={item.id}
@@ -20,7 +16,7 @@ export default function SocialMedia(props: SocialMediaType) {
           rel="noopener noreferrer"
           target="_blank"
         >
-          {item.icon}
+          <span className="text-2xl md:text-3xl">{item.icon}</span>
         </Link>
       ))}
     </div>
