@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import Typed from "typed.js";
 import SocialMedia from "./SocialMedia";
 import Avatar from "./Avatar";
 import TypedText from "./TypedText";
@@ -47,7 +46,7 @@ export default function Hero(props: HeroType) {
       <motion.span
         initial={{ y: "calc(100vh - 50%)" }}
         animate={{ y: 0 }}
-        transition={{ ease: "easeOut", duration:0.5, delay: 1 }}
+        transition={{ ease: "easeOut", duration: 0.5, delay: 1 }}
       >
         <SocialMedia className="my-10" />
       </motion.span>
