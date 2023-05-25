@@ -60,4 +60,71 @@ export default {
       description: "It is typically completed after 10 years of formal schooling.",
     },
   ],
+  technologies:[
+    {
+      id:1,
+      title:'ReactJS',
+      img:'/tech/reactjs.png'
+    },
+    {
+      id:2,
+      title:'React Native',
+      img:'/tech/react_native.jpg'
+    },
+    {
+      id:3,
+      title:'Tailwindcss',
+      img:'/tech/tailwindcss.png'
+    },
+    {
+      id:4,
+      title:'Bootstrap',
+      img:'/tech/bootstrap.png'
+    },
+    {
+      id:5,
+      title:'Express + Node',
+      img:'/tech/express_node_js.png'
+    },
+    {
+      id:6,
+      title:'JWT',
+      img:'/tech/jwt.png'
+    },
+    {
+      id:7,
+      title:'MySQL',
+      img:'/tech/mysql.png'
+    },
+    {
+      id:8,
+      title:'Restful API',
+      img:'/tech/rest_api.jpeg'
+    },
+    {
+      id:9,
+      title:'Git',
+      img:'/tech/git.jpg'
+    },
+    {
+      id:10,
+      title:'Cypress Automation Testing Tool',
+      img:'/tech/cypress.png'
+    },
+    {
+      id:11,
+      title:'Asp.net',
+      img:'/tech/asp_net.png'
+    },
+    {
+      id:12,
+      title:'Laravel',
+      img:'/tech/laravel.jpg'
+    },
+    {
+      id:13,
+      title:'jQuery',
+      img:'/tech/jquery.png'
+    },
+  ]
 };

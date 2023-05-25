@@ -3,44 +3,42 @@ import { motion } from "framer-motion";
 import data from "../data";
 
 export default function Education() {
+  const animate = {
+    hide: { y: "12vh" },
+    visible: {
+      y: 0,
+      transition: {
+        ease: "easeOut",
+        duration: 1,
+        type: "spring",
+        stiffness: 50,
+      },
+    },
+  };
+            
   return (
-    <div className="flex flex-col items-center px-8 md:px-1 bg-slate-50 dark:bg-black">
+    <div className="bg-slate-100 dark:bg-black md:w-1/2 py-5 ps-4 rounded-xl">
+    <div className="mx-5 border-s-[1px] border-secondary dark:border-primary">
       {data.education.map((item, index) => (
-        <>
-          <motion.div
-            key={item.id}
-            className="md:w-1/2 flex gap-5"
-            initial={{ y:'12vh' }}
-            whileInView={{ y:0 }}
-            transition={{
-              ease: "easeOut",
-              duration: 1,
-              type:'spring',
-              stiffness:50,
-              // delay:0.5,
-              // dumping:1
-            }}
-            //   viewport={{once:true}}
-          >
-            {index + 1 !== data.education.length ? (
-              <div className="border-[1px] border-secondary dark:border-primary -mr-9" />
-            ) : (
-              <div className="-mr-8" />
-            )}
-            <div className={`flex flex-col items-center h-[9em] bg-slate-50 dark:bg-black pt-5`}>
-              <span className="text-2xl">{item.icon}</span>
-              <p className="my-3 text-center text-sm">{item.year}</p>
-            </div>
-            <div className="pt-5">
-              <h3 className="">{item.title}</h3>
-              <h4 className="text-sm text-stone-900 dark:text-gray-200">{item.subject}</h4>
-              {/* Specialization: Software Engineering */}
-              <h5 className="text-sm italic text-stone-600 dark:text-gray-400">{item.institute}</h5>
-              <p className="text-xs text-stone-500 dark:text-gray-500">{item.description}</p>
-            </div>
-          </motion.div>
-        </>
+        <motion.section key={item.id} className="flex gap-10" 
+          variants={animate}
+          initial='hide'
+          whileInView='visible'
+        >
+          <div className={`flex flex-col items-center ${index==0? 'pt-0':'pt-5'} h-28 -ml-4 bg-slate-100 dark:bg-black`}>
+            <span className="text-2xl">{item.icon}</span>
+            <div className="text-center text-sm">{item.year}</div>
+          </div>
+
+          <div className={`${index==0? 'py-0':'pt-5'}`}>
+            <h4>{item.title}</h4>
+            <h5 className="text-sm text-stone-900 dark:text-gray-200">{item.subject}</h5>
+            <h6 className="text-xs italic text-stone-600 dark:text-gray-400">{item.institute}</h6>
+            <div className="text-xs text-gray-500 dark:text-gray-500">{item.description}</div>
+          </div>
+        </motion.section>
       ))}
+    </div>
     </div>
   );
 }
