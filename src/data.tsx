@@ -28,7 +28,7 @@ export default {
       subject: "Master of Science in Computer Science",
       institute: "American International University-Bangladesh",
       description:
-        "This program prepares students for careers in software engineering, where they can work on developing high-quality software systems and applications. Graduates gain expertise in software project management, software design patterns, software testing methodologies, and software quality assurance. They may also be well-equipped to pursue research or teaching positions in academia.",
+        "This program prepares students for careers in software engineering, where they can work on developing high-quality software systems and applications. Graduates gain expertise in software project management, software design patterns, software testing methodologies, and software quality assurance. They may also be well-equipped to pursue research or teaching positions in academia. ",
     },
     {
       id: 2,
