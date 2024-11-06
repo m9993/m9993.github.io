@@ -44,16 +44,34 @@ After running Metro Bundler,
 - Product details screen
 - Cart (add to cart, increase quantity | quantity reduce, remove from cart)
 - After every 20 seconds, a function will be executed and return the current timestamp in the home screen in a fixed floated position
+- Animated splash screen
 
 
 ## Screenshots
 
-<img src="https://github.com/m9993/techno-next-test-product-order-app/blob/main/readme-images/splash.png?raw=true" width="300" />
-
-![Splash](https://github.com/m9993/techno-next-test-product-order-app/blob/main/readme-images/splash.png?raw=true)
-![Home](https://github.com/m9993/techno-next-test-product-order-app/blob/main/readme-images/home.png?raw=true)
-![Offline Mode](https://github.com/m9993/techno-next-test-product-order-app/blob/main/readme-images/offline-mode.png?raw=true)
-![Cart](https://github.com/m9993/techno-next-test-product-order-app/blob/main/readme-images/cart.png?raw=true)
-![Product Details](https://github.com/m9993/techno-next-test-product-order-app/blob/main/readme-images/product-details.png?raw=true)
-![Current Location](https://github.com/m9993/techno-next-test-product-order-app/blob/main/readme-images/current-location.png?raw=true)
-
+<div style="display: flex; flex-wrap: wrap; gap: 50px; justify-content: center">
+    <img
+    alt="Splash"
+    style="width: 200px; border: 4px solid black; border-radius: 8px"
+    src="https://github.com/m9993/techno-next-test-product-order-app/blob/main/readme-images/splash.png?raw=true" />
+    <img
+    alt="Home"
+    style="width: 200px; border: 4px solid black; border-radius: 8px"
+    src="https://github.com/m9993/techno-next-test-product-order-app/blob/main/readme-images/home.png?raw=true" />
+    <img
+    alt="Offline Mode"
+    style="width: 200px; border: 4px solid black; border-radius: 8px"
+    src="https://github.com/m9993/techno-next-test-product-order-app/blob/main/readme-images/offline-mode.png?raw=true" />
+    <img
+    alt="Cart"
+    style="width: 200px; border: 4px solid black; border-radius: 8px"
+    src="https://github.com/m9993/techno-next-test-product-order-app/blob/main/readme-images/cart.png?raw=true" />
+    <img
+    alt="Product Details"
+    style="width: 200px; border: 4px solid black; border-radius: 8px"
+    src="https://github.com/m9993/techno-next-test-product-order-app/blob/main/readme-images/product-details.png?raw=true" />
+    <img
+    alt="Current Location"
+    style="width: 200px; border: 4px solid black; border-radius: 8px"
+    src="https://github.com/m9993/techno-next-test-product-order-app/blob/main/readme-images/current-location.png?raw=true" />
+</div>
