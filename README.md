@@ -1,7 +1,7 @@
 
 # Product Order
 
-A React native shopping app for test purpose.
+A react-native shopping app for test purpose.
 
 ## Screenshots
 
