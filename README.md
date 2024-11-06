@@ -31,6 +31,8 @@ A react-native shopping app for test purpose.
     style="width: 200px; border: 4px solid black; border-radius: 8px"
     src="https://github.com/m9993/techno-next-test-product-order-app/blob/main/readme-images/current-location.png?raw=true" />
 </div>
+
+
 ## Features
 
 - Showing current location on map
@@ -57,6 +59,8 @@ Go to the project directory
 ```bash
   cd techno-next-test-product-order-app
 ```
+### API Key
+Note: Google maps api keys (android & iOS) have not included as it is not required in development test. If you need production build then please make sure to add this in app.json file in root folder.
 
 Install dependencies
 
