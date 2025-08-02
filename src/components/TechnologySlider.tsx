@@ -22,7 +22,7 @@ export default function TechnologySlider() {
       aria-label="React Splide Example"
     >
       {data.technologies.map((item) => (
-        <SplideSlide>
+        <SplideSlide key={item.id.toString()}>
           <Image src={item.img} alt={item.title} width={200} height={200} />
         </SplideSlide>
       ))}
