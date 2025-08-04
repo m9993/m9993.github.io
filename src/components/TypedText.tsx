@@ -10,9 +10,10 @@ export default function TypedText(props: TypedTextType) {
   React.useEffect(() => {
     var typed = new Typed(el.current, {
       strings: [
-        `I am a <strong>Web Developer</strong>`,
-        `I am an <strong>Android Developer</strong>`,
         `I am an <strong>iOS Developer</strong>`,
+        `I am an <strong>Android Developer</strong>`,
+        `I am a <strong>React Native Developer</strong>`,
+        `I am a <strong>Web Developer</strong>`,
       ],
       typeSpeed: 60,
       backSpeed: 50,
