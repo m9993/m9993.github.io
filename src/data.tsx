@@ -145,9 +145,9 @@ export default {
     {
       icon: <FiPhone className="text-green-600" size={28} />,
       title: "Call Me",
-      value: "+88 01681797553",
+      value: "+880 1681797553",
       href: "tel:+8801681797553",
-      description: "Available Mon-Fri, 9am-5pm BST",
+      description: "Available Mon-Fri, 10am-6pm BST",
     },
     {
       icon: <FiMapPin className="text-red-600" size={28} />,

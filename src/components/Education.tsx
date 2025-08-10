@@ -22,7 +22,8 @@ export default function Education({ className }: { className?: string }) {
       <SectionTitle title="Educational" highlightedTitle="Background" />
       <div
         className={
-          "bg-slate-100 dark:bg-black py-5 ps-4 rounded-xl " + className
+          "bg-white dark:bg-gray-900 rounded-2xl shadow-xl hover:shadow-2xl transition-all overflow-hidden border border-gray-100 dark:border-gray-800 py-5 ps-4 " +
+          className
         }
       >
         <div className="mx-5 border-s-[1px] border-secondary dark:border-primary">
@@ -37,7 +38,7 @@ export default function Education({ className }: { className?: string }) {
               <div
                 className={`flex flex-col items-center ${
                   index == 0 ? "pt-0" : "pt-5"
-                } h-28 -ml-4 bg-slate-100 dark:bg-black`}
+                } h-28 -ml-4 bg-white dark:bg-gray-900`}
               >
                 <span className="text-2xl">{item.icon}</span>
                 <div className="text-center text-sm">{item.year}</div>

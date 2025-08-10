@@ -21,9 +21,9 @@ export default function Home() {
         // className="lg:flex justify-around items-center gap-5"
       >
         <Education className="md:w-2/3 mx-auto" />
-        <Projects />
         <Skills />
         <Certifications />
+        <Projects />
         <ContactInfo />
       </div>
       <ScrollToTop />
