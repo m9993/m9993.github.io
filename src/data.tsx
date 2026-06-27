@@ -3,6 +3,27 @@ import { SlGraduation } from "react-icons/sl";
 import { FiMail, FiPhone, FiMapPin, FiClock } from "react-icons/fi";
 
 export default {
+  name: "Muntasir Alam",
+  subTitle: "Seeking for a rewarding career as a full stack developer in locally and globally applying my knowledge and communication skills.",
+  typedText: [
+    `I am an <strong>iOS Developer</strong>`,
+    `I am an <strong>Android Developer</strong>`,
+    `I am a <strong>Flutter Developer</strong>`,
+    `I am a <strong>React Native Developer</strong>`,
+    `I am a <strong>Web Developer</strong>`,
+  ],
+  profileImages: [
+    { id: "0", src: "/profile/0.jpg", alt: "Profile" },
+    { id: "1", src: "/profile/1.jpeg", alt: "Profile 1" },
+    { id: "2", src: "/profile/2.jpg", alt: "Profile 2" },
+    { id: "3", src: "/profile/3.jpeg", alt: "Profile 3" },
+    { id: "4", src: "/profile/4.jpg", alt: "Profile 4" },
+    { id: "5", src: "/profile/5.jpg", alt: "Profile 5" },
+    { id: "6", src: "/profile/6.jpg", alt: "Profile 6" },
+    { id: "7", src: "/profile/7.heic", alt: "Profile 7" },
+    { id: "8", src: "/profile/8.jpg", alt: "Profile 8" },
+    { id: "9", src: "/profile/9.jpg", alt: "Profile 9" },
+  ],
   social: [
     {
       id: 1,
@@ -67,7 +88,7 @@ export default {
       name: "Frontend",
       icon: "💻",
       accent: "blue",
-      skills: ["React Native", "React", "Next.js", "Tailwind CSS", "Bootstrap"],
+      skills: ["Flutter", "React Native", "React", "Next.js", "Tailwind CSS", "Bootstrap"],
     },
     {
       name: "Backend",
@@ -107,7 +128,6 @@ export default {
       title: "HTML, CSS, and Javascript for Web Developers",
       institution: "Coursera",
       link: "https://coursera.org/share/2ea3dd2cbbfe3c46a211d1165a488b86",
-      accentColor: "orange",
     },
     {
       id: "2",
@@ -115,24 +135,7 @@ export default {
       title: "Interactivity with JavaScript",
       institution: "Coursera",
       link: "https://coursera.org/share/46038e6c8c55d0dbbfedef78c2a047f2",
-      accentColor: "blue",
     },
-    // {
-    //   id: "nodejs-dev",
-    //   image: "/certificates/nodejs-certified.png",
-    //   title: "Node.js Developer Certification",
-    //   institution: "OpenJS Foundation",
-    //   link: "https://openjsf.org/certification/",
-    //   accentColor: "green",
-    // },
-    // {
-    //   id: "ts-pro",
-    //   image: "/certificates/typescript-expert.png",
-    //   title: "TypeScript Professional",
-    //   institution: "Microsoft",
-    //   link: "https://www.microsoft.com/en-us/learning/typescript-certification.aspx",
-    //   accentColor: "purple",
-    // },
   ],
   contactMethods: [
     {
@@ -160,7 +163,7 @@ export default {
       icon: <FiClock className="text-purple-600" size={28} />,
       title: "Availability",
       value: "Flexible Hours",
-      href: "#availability",
+      // href: "",
       description: "Let's schedule a meeting",
     },
   ],

@@ -1,3 +1,4 @@
+import data from "@/data";
 import React from "react";
 import Typed from "typed.js";
 
@@ -9,12 +10,7 @@ export default function TypedText(props: TypedTextType) {
   const el = React.useRef(null);
   React.useEffect(() => {
     var typed = new Typed(el.current, {
-      strings: [
-        `I am an <strong>iOS Developer</strong>`,
-        `I am an <strong>Android Developer</strong>`,
-        `I am a <strong>React Native Developer</strong>`,
-        `I am a <strong>Web Developer</strong>`,
-      ],
+      strings: data.typedText,
       typeSpeed: 60,
       backSpeed: 50,
       smartBackspace: true, // this is a default

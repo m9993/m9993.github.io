@@ -1,44 +1,24 @@
 import React from "react";
-import { motion } from "framer-motion";
 import data from "../data";
-import SectionTitle from "./SectionTitle";
 
 export default function Education({ className }: { className?: string }) {
-  const animate = {
-    hide: { y: "12vh" },
-    visible: {
-      y: 0,
-      transition: {
-        ease: "easeOut",
-        duration: 1,
-        type: "spring",
-        stiffness: 50,
-      },
-    },
-  };
-
   return (
     <>
-      <SectionTitle title="Educational" highlightedTitle="Background" />
       <div
         className={
-          "bg-white dark:bg-gray-900 rounded-2xl shadow-xl hover:shadow-2xl transition-all overflow-hidden border border-gray-100 dark:border-gray-800 py-5 ps-4 " +
+          "rounded-2xl shadow-xl hover:shadow-2xl transition-all overflow-hidden border border-gray-100 dark:border-gray-800 py-5 ps-4 " +
           className
         }
       >
         <div className="mx-5 border-s-[1px] border-secondary dark:border-primary">
           {data.education.map((item, index) => (
-            <motion.section
+            <section
               key={item.id}
               className="flex gap-10"
-              variants={animate}
-              initial="hide"
-              whileInView="visible"
             >
               <div
-                className={`flex flex-col items-center ${
-                  index == 0 ? "pt-0" : "pt-5"
-                } h-28 -ml-4 bg-white dark:bg-gray-900`}
+                className={`flex flex-col items-center ${index == 0 ? "pt-0" : "pt-5"
+                  } h-28 -ml-4 bg-white dark:bg-gray-900`}
               >
                 <span className="text-2xl">{item.icon}</span>
                 <div className="text-center text-sm">{item.year}</div>
@@ -56,7 +36,7 @@ export default function Education({ className }: { className?: string }) {
                   {item.description}
                 </div>
               </div>
-            </motion.section>
+            </section>
           ))}
         </div>
       </div>

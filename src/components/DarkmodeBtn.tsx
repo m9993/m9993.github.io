@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { MdModeNight, BsSunFill } from "react-icons/all";
+import { MdModeNight } from "react-icons/md";
+import { BsSunFill } from "react-icons/bs";
 
 type DarkmodeBtnType = {
   className?: string;
