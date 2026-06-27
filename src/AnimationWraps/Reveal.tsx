@@ -1,6 +1,7 @@
 // components/AnimationWrapper.tsx
-import React, { ReactNode, useRef } from "react";
-import { motion, useInView, useAnimation, Variants } from "framer-motion";
+import React, { ReactNode, useEffect, useRef } from "react";
+import { motion, useAnimation, Variants } from "framer-motion";
+import { useInView } from "react-intersection-observer";
 
 type AnimationType =
   | "fade"
@@ -17,7 +18,6 @@ type AnimationType =
 
 type AnimationWrapperProps = {
   children: ReactNode;
-  className?: string;
   animation?: AnimationType;
   duration?: number;
   delay?: number;
@@ -30,7 +30,6 @@ type AnimationWrapperProps = {
 
 const AnimationWrapper = ({
   children,
-  className = "",
   animation = "slideUp",
   duration = 0.6,
   delay = 0,
@@ -40,13 +39,21 @@ const AnimationWrapper = ({
   threshold = 0.2,
   margin = "-50px 0px -50px 0px",
 }: AnimationWrapperProps) => {
-  const ref = useRef(null);
-  const isInView = useInView(ref, {
-    once: once,
-    margin: margin,
-    amount: threshold,
-  });
   const controls = useAnimation();
+  const { ref: inViewRef, inView } = useInView({
+    triggerOnce: once,
+    threshold: threshold,
+    rootMargin: margin,
+  });
+
+  // Create a ref for the motion div
+  const motionRef = useRef<HTMLDivElement>(null);
+
+  // Combine refs
+  const setRefs = (node: HTMLDivElement | null) => {
+    motionRef.current = node;
+    inViewRef(node);
+  };
 
   const getAnimationVariants = (): Variants => {
     const variants: Record<AnimationType, Variants> = {
@@ -172,21 +179,20 @@ const AnimationWrapper = ({
     }
   };
 
-  React.useEffect(() => {
-    if (isInView) {
+  useEffect(() => {
+    if (inView) {
       controls.start("visible");
     } else {
       controls.start("hidden");
     }
-  }, [isInView, controls]);
+  }, [inView, controls]);
 
   const variants = getAnimationVariants();
 
   if (staggerChildren) {
     return (
       <motion.div
-        ref={ref}
-        className={className}
+        ref={setRefs}
         initial="hidden"
         animate={controls}
         variants={{
@@ -200,8 +206,11 @@ const AnimationWrapper = ({
           },
         }}
       >
-        {React.Children.map(children, (child) => (
-          <motion.div variants={childVariants}>
+        {React.Children.map(children, (child, index) => (
+          <motion.div
+            key={index}
+            variants={childVariants}
+          >
             {child}
           </motion.div>
         ))}
@@ -211,8 +220,7 @@ const AnimationWrapper = ({
 
   return (
     <motion.div
-      ref={ref}
-      className={className}
+      ref={setRefs}
       initial="hidden"
       animate={controls}
       variants={variants}
