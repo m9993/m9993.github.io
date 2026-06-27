@@ -57,7 +57,6 @@ const Skills = () => {
                   type: "spring",
                   stiffness: 200
                 }}
-                onClick={() => setSelectedSkill(isSelected ? null : item.skill)}
                 style={{
                   fontSize: `${size * 0.9}rem`,
                 }}
@@ -66,6 +65,7 @@ const Skills = () => {
                   ${getColor(item.accent)}
                   ${isSelected ? 'shadow-lg scale-110 ring-2 ring-offset-2 ring-primary/50' : 'hover:shadow-md'}
                 `}
+                {...({ onClick: () => setSelectedSkill(isSelected ? null : item.skill) } as any)}
               >
                 <span className="mr-1.5">{item.icon}</span>
                 {item.skill}
@@ -98,6 +98,7 @@ const Skills = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="mt-6 text-center"
+          {...({} as any)}
         >
           <p className="text-sm text-gray-500 dark:text-gray-400">
             Click again to deselect • {allSkills.find(s => s.skill === selectedSkill)?.category}
