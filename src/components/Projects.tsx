@@ -25,7 +25,7 @@ const Projects = () => {
     <>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {data.projects.map((project, index) => (
-          <div className="relative bg-white/60 dark:bg-gray-900/30 rounded-xl p-4 border border-gray-200/50 dark:border-white/10 shadow-sm hover:shadow-md transition-all duration-300">
+          <div key={project.id + '-' + index} className="relative bg-white/60 dark:bg-gray-900/30 rounded-xl p-4 border border-gray-200/50 dark:border-white/10 shadow-sm hover:shadow-md transition-all duration-300">
             <div className="flex items-start gap-3">
               {/* Icon */}
               <div className="flex-shrink-0 w-10 h-10 bg-gray-100/50 dark:bg-white/5 rounded-lg overflow-hidden relative">
