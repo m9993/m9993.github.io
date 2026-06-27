@@ -13,7 +13,7 @@ export default function SectionTitle({
   subTitle?: string;
 }) {
   return (
-    <Reveal animation='scale'>
+    <Reveal animation='bounce'>
       <div
         className={'text-center ' + className}
       >

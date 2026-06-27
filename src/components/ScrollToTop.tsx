@@ -34,9 +34,9 @@ const ScrollToTop = () => {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 20 }}
           transition={{ duration: 0.3 }}
-          onClick={scrollToTop}
           aria-label="Scroll to top"
           className="fixed bottom-8 right-8 z-50 p-3 rounded-full shadow-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+          {...({ onClick: scrollToTop } as any)}
         >
           <FiArrowUp className="w-6 h-6 text-gray-800 dark:text-white" />
         </motion.button>
