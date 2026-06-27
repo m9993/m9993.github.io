@@ -1,6 +1,6 @@
 // components/AvatarCarousel.tsx
 import Image from "next/image";
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 
 type AvatarImage = {
   id: string;
@@ -25,9 +25,11 @@ export default function AvatarCarousel({
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
   const [currentRotation, setCurrentRotation] = useState(0);
+  const [isTransitioning, setIsTransitioning] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
-  // Fix: Pass null as initial value
   const autoRotateRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const touchStartX = useRef(0);
+  const touchEndX = useRef(0);
 
   const totalImages = images.length;
   const rotationAngle = 360 / totalImages;
@@ -37,13 +39,13 @@ export default function AvatarCarousel({
     if (totalImages <= 3) return 140;
     if (totalImages <= 5) return 150;
     if (totalImages <= 8) return 160;
-    return 170; // Good size for 10+ images
+    return 170;
   };
 
   const radius = getRadius();
 
-  // Calculate sizes
-  const getSize = (position: string) => {
+  // Calculate sizes - memoized for performance
+  const getSize = useCallback((position: string) => {
     const baseSize = Math.min(130, Math.max(90, 170 - totalImages * 2));
 
     switch (position) {
@@ -53,9 +55,9 @@ export default function AvatarCarousel({
       case 'farthest': return `${baseSize * 0.35}px`;
       default: return `${baseSize * 0.25}px`;
     }
-  };
+  }, [totalImages]);
 
-  const getOpacity = (position: string) => {
+  const getOpacity = useCallback((position: string) => {
     switch (position) {
       case 'active': return 1;
       case 'near': return 0.8;
@@ -63,9 +65,9 @@ export default function AvatarCarousel({
       case 'farthest': return 0.3;
       default: return 0.15;
     }
-  };
+  }, []);
 
-  const getBlur = (position: string) => {
+  const getBlur = useCallback((position: string) => {
     switch (position) {
       case 'active': return 'none';
       case 'near': return 'blur(0.5px)';
@@ -73,158 +75,147 @@ export default function AvatarCarousel({
       case 'farthest': return 'blur(1.5px)';
       default: return 'blur(2px)';
     }
-  };
+  }, []);
 
-  const getBorder = (position: string) => {
+  const getBorder = useCallback((position: string) => {
     switch (position) {
       case 'active': return 'border-4 border-secondary dark:border-primary shadow-2xl shadow-secondary/40 dark:shadow-primary/40';
       case 'near': return 'border-gray-400 dark:border-gray-500 hover:border-primary/50';
       case 'far': return 'border-gray-300 dark:border-gray-600';
       default: return 'border-gray-200 dark:border-gray-700';
     }
-  };
-
-  useEffect(() => {
-    setCurrentRotation(0);
   }, []);
 
+  // Smooth rotation function with easing
+  const rotateToIndex = useCallback((index: number, animated = true) => {
+    if (isTransitioning) return;
+
+    setIsTransitioning(true);
+    const targetAngle = -index * rotationAngle;
+    setCurrentRotation(targetAngle);
+    setActiveIndex(index);
+
+    // Reset transition state after animation completes
+    setTimeout(() => {
+      setIsTransitioning(false);
+    }, 700); // Match the transition duration
+  }, [rotationAngle, isTransitioning]);
+
+  // Auto-rotation with cleanup
   useEffect(() => {
-    if (!isHovering && !isDragging) {
+    if (!isHovering && !isDragging && totalImages > 0) {
       autoRotateRef.current = setInterval(() => {
         const nextIndex = (activeIndex + 1) % totalImages;
-        setActiveIndex(nextIndex);
-        const targetAngle = -nextIndex * rotationAngle;
-        setCurrentRotation(targetAngle);
+        rotateToIndex(nextIndex);
       }, autoRotateInterval);
     } else {
       if (autoRotateRef.current) {
         clearInterval(autoRotateRef.current);
+        autoRotateRef.current = null;
       }
     }
 
     return () => {
       if (autoRotateRef.current) {
         clearInterval(autoRotateRef.current);
+        autoRotateRef.current = null;
       }
     };
-  }, [isHovering, isDragging, activeIndex, totalImages, autoRotateInterval, rotationAngle]);
+  }, [isHovering, isDragging, activeIndex, totalImages, autoRotateInterval, rotateToIndex]);
 
-  const handleMouseDown = (e: React.MouseEvent) => {
+  // Handle mouse drag with better sensitivity
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
     setIsDragging(true);
     setStartX(e.clientX);
-  };
+    setIsHovering(true);
+  }, []);
 
-  const handleMouseMove = (e: React.MouseEvent) => {
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
     if (!isDragging) return;
     const deltaX = e.clientX - startX;
-    if (Math.abs(deltaX) > 50) {
+    if (Math.abs(deltaX) > 30) { // Reduced threshold for better responsiveness
       if (deltaX > 0) {
         const prevIndex = (activeIndex - 1 + totalImages) % totalImages;
-        setActiveIndex(prevIndex);
-        setCurrentRotation(-prevIndex * rotationAngle);
+        rotateToIndex(prevIndex);
       } else {
         const nextIndex = (activeIndex + 1) % totalImages;
-        setActiveIndex(nextIndex);
-        setCurrentRotation(-nextIndex * rotationAngle);
+        rotateToIndex(nextIndex);
       }
       setStartX(e.clientX);
     }
-  };
+  }, [isDragging, startX, activeIndex, totalImages, rotateToIndex]);
 
-  const handleMouseUp = () => {
+  const handleMouseUp = useCallback(() => {
     setIsDragging(false);
-  };
+    setIsHovering(false);
+  }, []);
 
-  const handleTouchStart = (e: React.TouchEvent) => {
+  // Handle touch with better sensitivity
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+    touchEndX.current = e.touches[0].clientX;
     setIsDragging(true);
-    setStartX(e.touches[0].clientX);
-  };
+    setIsHovering(true);
+  }, []);
 
-  const handleTouchMove = (e: React.TouchEvent) => {
+  const handleTouchMove = useCallback((e: React.TouchEvent) => {
     if (!isDragging) return;
-    const deltaX = e.touches[0].clientX - startX;
-    if (Math.abs(deltaX) > 50) {
+    touchEndX.current = e.touches[0].clientX;
+    const deltaX = touchEndX.current - touchStartX.current;
+
+    if (Math.abs(deltaX) > 30) { // Reduced threshold
       if (deltaX > 0) {
         const prevIndex = (activeIndex - 1 + totalImages) % totalImages;
-        setActiveIndex(prevIndex);
-        setCurrentRotation(-prevIndex * rotationAngle);
+        rotateToIndex(prevIndex);
       } else {
         const nextIndex = (activeIndex + 1) % totalImages;
-        setActiveIndex(nextIndex);
-        setCurrentRotation(-nextIndex * rotationAngle);
+        rotateToIndex(nextIndex);
       }
-      setStartX(e.touches[0].clientX);
+      touchStartX.current = touchEndX.current;
     }
-  };
+  }, [isDragging, activeIndex, totalImages, rotateToIndex]);
 
-  const handleTouchEnd = () => {
+  const handleTouchEnd = useCallback(() => {
     setIsDragging(false);
-  };
+    setIsHovering(false);
+  }, []);
 
-  const goToPrev = () => {
+  // Navigation functions
+  const goToPrev = useCallback(() => {
+    if (isTransitioning) return;
     const prevIndex = (activeIndex - 1 + totalImages) % totalImages;
-    setActiveIndex(prevIndex);
-    setCurrentRotation(-prevIndex * rotationAngle);
-  };
+    rotateToIndex(prevIndex);
+  }, [activeIndex, totalImages, rotateToIndex, isTransitioning]);
 
-  const goToNext = () => {
+  const goToNext = useCallback(() => {
+    if (isTransitioning) return;
     const nextIndex = (activeIndex + 1) % totalImages;
-    setActiveIndex(nextIndex);
-    setCurrentRotation(-nextIndex * rotationAngle);
-  };
+    rotateToIndex(nextIndex);
+  }, [activeIndex, totalImages, rotateToIndex, isTransitioning]);
 
-  const goToImage = (index: number) => {
-    setActiveIndex(index);
-    setCurrentRotation(-index * rotationAngle);
-  };
+  const goToImage = useCallback((index: number) => {
+    if (isTransitioning || index === activeIndex) return;
+    rotateToIndex(index);
+  }, [activeIndex, rotateToIndex, isTransitioning]);
 
-  const getDistance = (index: number) => {
+  // Get distance with circular logic
+  const getDistance = useCallback((index: number) => {
     let diff = index - activeIndex;
     if (Math.abs(diff) > totalImages / 2) {
       diff = diff > 0 ? diff - totalImages : diff + totalImages;
     }
     return diff;
-  };
-
-  const getVisibleDots = () => {
-    if (totalImages <= 8) {
-      return images.map((_, index) => index);
-    }
-
-    const dots: (number | 'ellipsis')[] = [];
-    const range = 2;
-
-    dots.push(0);
-
-    if (activeIndex > range + 2) {
-      dots.push('ellipsis');
-    }
-
-    for (let i = Math.max(1, activeIndex - range); i <= Math.min(totalImages - 2, activeIndex + range); i++) {
-      if (i > 0 && i < totalImages - 1) {
-        dots.push(i);
-      }
-    }
-
-    if (activeIndex < totalImages - range - 3) {
-      dots.push('ellipsis');
-    }
-
-    if (totalImages > 1) {
-      dots.push(totalImages - 1);
-    }
-
-    return dots;
-  };
-
-  const visibleDots = getVisibleDots();
+  }, [activeIndex, totalImages]);
 
   return (
     <div
       ref={containerRef}
       className={`relative w-full max-w-4xl mx-auto select-none ${className}`}
       onMouseEnter={() => setIsHovering(true)}
-      onMouseLeave={() => setIsHovering(false)}
+      onMouseLeave={() => {
+        setIsHovering(false);
+        setIsDragging(false);
+      }}
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
@@ -232,13 +223,13 @@ export default function AvatarCarousel({
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
-      {/* Carousel Container - Increased height for visibility */}
       <div className="relative flex items-center justify-center h-[350px] md:h-[400px] perspective-1000 overflow-visible">
         <div
-          className="relative w-full h-full transition-transform duration-700 ease-out"
+          className="relative w-full h-full"
           style={{
             transformStyle: "preserve-3d",
             transform: `rotateY(${currentRotation}deg)`,
+            transition: `transform ${isTransitioning ? '700ms' : '0ms'} cubic-bezier(0.25, 0.1, 0.25, 1)`,
           }}
         >
           {images.map((image, index) => {
@@ -258,8 +249,8 @@ export default function AvatarCarousel({
             const blur = getBlur(position);
             const border = getBorder(position);
 
-            // Only hide images that are too far
             const isHidden = absDistance > 3 && totalImages > 6;
+            const shouldShow = totalImages <= 6 || !isHidden;
 
             let zIndex = 1;
             if (position === 'active') zIndex = 10;
@@ -267,32 +258,34 @@ export default function AvatarCarousel({
             else if (position === 'far') zIndex = 3;
             else zIndex = 2;
 
-            // For visibility debugging - show all images if totalImages <= 6
-            const shouldShow = totalImages <= 6 || !isHidden;
+            const sizeNum = parseInt(size);
+            const halfSize = sizeNum / 2;
 
             return (
               <div
                 key={image.id}
-                className={`absolute top-1/2 left-1/2 transition-all duration-700 ease-out cursor-pointer ${shouldShow ? 'visible' : 'hidden'
-                  }`}
+                className={`absolute top-1/2 left-1/2 cursor-pointer ${shouldShow ? 'visible' : 'hidden'}`}
                 style={{
                   transform: `rotateY(${angle}deg) translateZ(${radius}px)`,
                   transformStyle: "preserve-3d",
                   width: size,
                   height: size,
-                  marginLeft: `-${parseInt(size) / 2}px`,
-                  marginTop: `-${parseInt(size) / 2}px`,
+                  marginLeft: `-${halfSize}px`,
+                  marginTop: `-${halfSize}px`,
                   zIndex: zIndex,
                   opacity: opacity,
                   filter: blur,
                   left: "50%",
                   top: "50%",
+                  transition: `all 700ms cubic-bezier(0.25, 0.1, 0.25, 1)`,
                 }}
                 onClick={() => goToImage(index)}
               >
                 <div
-                  className={`relative w-full h-full rounded-full overflow-hidden transition-all duration-500 ${border} ${position === 'active' ? "scale-105" : ""
-                    }`}
+                  className={`relative w-full h-full rounded-full overflow-hidden ${border} ${position === 'active' ? "scale-105" : ""}`}
+                  style={{
+                    transition: `all 500ms cubic-bezier(0.25, 0.1, 0.25, 1)`,
+                  }}
                 >
                   <Image
                     src={image.src}
@@ -301,6 +294,7 @@ export default function AvatarCarousel({
                     className="object-cover"
                     sizes={size}
                     priority={position === 'active'}
+                    loading={position === 'active' ? 'eager' : 'lazy'}
                   />
 
                   {position === 'active' && (
@@ -323,90 +317,6 @@ export default function AvatarCarousel({
           })}
         </div>
       </div>
-
-      {/* Navigation Buttons */}
-      {/* <button
-        onClick={goToPrev}
-        className="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 p-2 md:p-3 rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm shadow-lg hover:scale-110 transition-all duration-200 z-20 border border-gray-200 dark:border-gray-700"
-        aria-label="Previous image"
-      >
-        <svg
-          className="w-4 h-4 md:w-6 md:h-6"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M15 19l-7-7 7-7"
-          />
-        </svg>
-      </button>
-
-      <button
-        onClick={goToNext}
-        className="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 p-2 md:p-3 rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm shadow-lg hover:scale-110 transition-all duration-200 z-20 border border-gray-200 dark:border-gray-700"
-        aria-label="Next image"
-      >
-        <svg
-          className="w-4 h-4 md:w-6 md:h-6"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M9 5l7 7-7 7"
-          />
-        </svg>
-      </button> */}
-
-      {/* Modern Dots Indicator */}
-      {/* <div className="absolute bottom-5 left-1/2 -translate-x-1/2 flex items-center gap-1.5 mt-4 z-20 px-4 py-2 backdrop-blur-sm rounded-full shadow-lg border border-white/20 dark:border-gray-700/30">
-        {visibleDots.map((dot, idx) => {
-          if (dot === 'ellipsis') {
-            return (
-              <span
-                key={`ellipsis-${idx}`}
-                className="text-gray-400 dark:text-gray-500 text-xs px-0.5 select-none"
-              >
-                …
-              </span>
-            );
-          }
-
-          const isActive = dot === activeIndex;
-          return (
-            <button
-              key={dot}
-              onClick={() => goToImage(dot)}
-              className={`
-                transition-all duration-300 rounded-full
-                ${isActive
-                  ? 'w-8 h-2.5 bg-gradient-to-r from-secondary to-primary dark:from-primary dark:to-secondary shadow-lg shadow-blue-500/30'
-                  : 'w-2 h-2 bg-gray-300 dark:bg-gray-600 hover:bg-gray-400 dark:hover:bg-gray-500 hover:scale-110'
-                }
-              `}
-              aria-label={`Go to image ${dot + 1}`}
-            />
-          );
-        })}
-      </div> */}
-
-      {/* Counter Badge */}
-      {/* <div className="text-xs text-gray-500 dark:text-gray-400 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-md border border-white/20 dark:border-gray-700/30 flex items-center gap-1.5">
-        <span className="font-medium text-secondary dark:text-primary">
-          {String(activeIndex + 1).padStart(2, '0')}
-        </span>
-        <span className="text-gray-300 dark:text-gray-600">/</span>
-        <span className="text-gray-400 dark:text-gray-500">
-          {String(totalImages).padStart(2, '0')}
-        </span>
-      </div> */}
     </div>
   );
 }

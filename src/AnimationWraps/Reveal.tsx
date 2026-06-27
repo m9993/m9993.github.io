@@ -1,5 +1,5 @@
 // components/AnimationWrapper.tsx
-import React, { ReactNode, useRef, useEffect } from "react";
+import React, { ReactNode, useRef, useEffect, useMemo, useCallback } from "react";
 import { motion, useAnimation, Variants } from "framer-motion";
 
 type AnimationType =
@@ -25,6 +25,10 @@ type AnimationWrapperProps = {
   staggerDelay?: number;
   threshold?: number;
   margin?: string;
+  root?: Element | null;
+  rootMargin?: string;
+  triggerOnce?: boolean;
+  skipObserver?: boolean;
 };
 
 const AnimationWrapper = ({
@@ -37,12 +41,18 @@ const AnimationWrapper = ({
   staggerDelay = 0.1,
   threshold = 0.2,
   margin = "-50px 0px -50px 0px",
+  root = null,
+  rootMargin,
+  triggerOnce = false,
+  skipObserver = false,
 }: AnimationWrapperProps) => {
   const ref = useRef<HTMLDivElement>(null);
   const controls = useAnimation();
+  const isMounted = useRef(true);
 
-  const getAnimationVariants = (): Variants => {
-    const variants: Record<AnimationType, Variants> = {
+  // Memoize animation variants to prevent recreation
+  const variants = useMemo(() => {
+    const baseVariants: Record<AnimationType, Variants> = {
       fade: {
         hidden: { opacity: 0 },
         visible: {
@@ -149,10 +159,11 @@ const AnimationWrapper = ({
       }
     };
 
-    return variants[animation] || variants.slideUp;
-  };
+    return baseVariants[animation] || baseVariants.slideUp;
+  }, [animation, duration, delay]);
 
-  const childVariants: Variants = {
+  // Memoize child variants
+  const childVariants = useMemo<Variants>(() => ({
     hidden: { opacity: 0, y: 20, scale: 0.95 },
     visible: {
       opacity: 1,
@@ -163,23 +174,45 @@ const AnimationWrapper = ({
         ease: [0.25, 0.1, 0.25, 1],
       }
     }
-  };
+  }), [duration]);
 
-  // Use Intersection Observer API directly
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          controls.start("visible");
-        } else if (!once) {
-          controls.start("hidden");
-        }
+  // Memoize stagger variants
+  const staggerVariants = useMemo<Variants>(() => ({
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: staggerDelay,
+        delayChildren: delay,
       },
-      {
-        threshold: threshold,
-        rootMargin: margin,
-      }
-    );
+    },
+  }), [staggerDelay, delay]);
+
+  // Handle intersection observer with useCallback
+  const handleIntersection = useCallback((entries: IntersectionObserverEntry[]) => {
+    const [entry] = entries;
+    if (!isMounted.current) return;
+
+    if (entry.isIntersecting) {
+      controls.start("visible");
+    } else if (!once && !triggerOnce) {
+      controls.start("hidden");
+    }
+  }, [controls, once, triggerOnce]);
+
+  // Setup intersection observer
+  useEffect(() => {
+    if (skipObserver) {
+      // If skipObserver is true, start animation immediately
+      controls.start("visible");
+      return;
+    }
+
+    const observer = new IntersectionObserver(handleIntersection, {
+      threshold: threshold,
+      rootMargin: rootMargin || margin,
+      root: root,
+    });
 
     const currentRef = ref.current;
     if (currentRef) {
@@ -187,35 +220,37 @@ const AnimationWrapper = ({
     }
 
     return () => {
+      isMounted.current = false;
       if (currentRef) {
         observer.unobserve(currentRef);
       }
+      observer.disconnect();
     };
-  }, [controls, once, threshold, margin]);
+  }, [handleIntersection, threshold, margin, rootMargin, root, skipObserver, controls]);
 
-  const variants = getAnimationVariants();
+  // Clean up animations on unmount
+  useEffect(() => {
+    return () => {
+      isMounted.current = false;
+      controls.stop();
+    };
+  }, [controls]);
 
+  // If staggerChildren is true, render with stagger
   if (staggerChildren) {
     return (
       <motion.div
         ref={ref}
         initial="hidden"
         animate={controls}
-        variants={{
-          hidden: { opacity: 0 },
-          visible: {
-            opacity: 1,
-            transition: {
-              staggerChildren: staggerDelay,
-              delayChildren: delay,
-            },
-          },
-        }}
+        variants={staggerVariants}
       >
         {React.Children.map(children, (child, index) => (
           <motion.div
             key={index}
             variants={childVariants}
+            // Add will-change for better performance
+            style={{ willChange: 'transform, opacity' }}
           >
             {child}
           </motion.div>
@@ -230,10 +265,13 @@ const AnimationWrapper = ({
       initial="hidden"
       animate={controls}
       variants={variants}
+      // Add will-change for better performance
+      style={{ willChange: 'transform, opacity' }}
     >
       {children}
     </motion.div>
   );
 };
 
-export default AnimationWrapper;
+// Memoize the entire component to prevent unnecessary re-renders
+export default React.memo(AnimationWrapper);

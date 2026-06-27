@@ -1,22 +1,22 @@
-import React, { useState } from "react";
-import { motion } from "framer-motion";
+import React, { useState, useMemo, useCallback, memo } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import data from "@/data";
 
 const Skills = () => {
   const [selectedSkill, setSelectedSkill] = useState<string | null>(null);
 
-  // Flatten all skills with categories
-  const allSkills = data.skillCategories.flatMap(cat =>
-    cat.skills.map(skill => ({
-      skill,
-      category: cat.name,
-      icon: cat.icon,
-      accent: cat.accent || "blue"
-    }))
-  );
+  const allSkills = useMemo(() => {
+    return data.skillCategories.flatMap(cat =>
+      cat.skills.map(skill => ({
+        skill,
+        category: cat.name,
+        icon: cat.icon,
+        accent: cat.accent || "blue"
+      }))
+    );
+  }, []);
 
-  // Color mapping for tags
-  const getColor = (accent: string) => {
+  const getColor = useCallback((accent: string) => {
     const colors = {
       blue: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 border-blue-200 dark:border-blue-800",
       purple: "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 border-purple-200 dark:border-purple-800",
@@ -24,7 +24,11 @@ const Skills = () => {
       amber: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300 border-amber-200 dark:border-amber-800",
     };
     return colors[accent as keyof typeof colors] || colors.blue;
-  };
+  }, []);
+
+  const handleSkillSelect = useCallback((skill: string) => {
+    setSelectedSkill(prev => prev === skill ? null : skill);
+  }, []);
 
   return (
     <>
@@ -65,7 +69,7 @@ const Skills = () => {
                   ${getColor(item.accent)}
                   ${isSelected ? 'shadow-lg scale-110 ring-2 ring-offset-2 ring-primary/50' : 'hover:shadow-md'}
                 `}
-                {...({ onClick: () => setSelectedSkill(isSelected ? null : item.skill) } as any)}
+                {...({ onClick: () => handleSkillSelect(item.skill) } as any)}
               >
                 <span className="mr-1.5">{item.icon}</span>
                 {item.skill}
@@ -97,6 +101,7 @@ const Skills = () => {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -20 }}
           className="mt-6 text-center"
           {...({} as any)}
         >
@@ -109,4 +114,4 @@ const Skills = () => {
   );
 };
 
-export default Skills;
+export default memo(Skills);
