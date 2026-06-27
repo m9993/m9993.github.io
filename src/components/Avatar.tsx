@@ -26,7 +26,8 @@ export default function AvatarCarousel({
   const [startX, setStartX] = useState(0);
   const [currentRotation, setCurrentRotation] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
-  const autoRotateRef = useRef<NodeJS.Timeout>();
+  // Fix: Pass null as initial value
+  const autoRotateRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const totalImages = images.length;
   const rotationAngle = 360 / totalImages;
@@ -96,10 +97,16 @@ export default function AvatarCarousel({
         setCurrentRotation(targetAngle);
       }, autoRotateInterval);
     } else {
-      clearInterval(autoRotateRef.current);
+      if (autoRotateRef.current) {
+        clearInterval(autoRotateRef.current);
+      }
     }
 
-    return () => clearInterval(autoRotateRef.current);
+    return () => {
+      if (autoRotateRef.current) {
+        clearInterval(autoRotateRef.current);
+      }
+    };
   }, [isHovering, isDragging, activeIndex, totalImages, autoRotateInterval, rotationAngle]);
 
   const handleMouseDown = (e: React.MouseEvent) => {
