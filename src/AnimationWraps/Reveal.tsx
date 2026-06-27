@@ -1,7 +1,6 @@
 // components/AnimationWrapper.tsx
-import React, { ReactNode, useEffect, useRef } from "react";
+import React, { ReactNode, useRef, useEffect } from "react";
 import { motion, useAnimation, Variants } from "framer-motion";
-import { useInView } from "react-intersection-observer";
 
 type AnimationType =
   | "fade"
@@ -39,21 +38,8 @@ const AnimationWrapper = ({
   threshold = 0.2,
   margin = "-50px 0px -50px 0px",
 }: AnimationWrapperProps) => {
+  const ref = useRef<HTMLDivElement>(null);
   const controls = useAnimation();
-  const { ref: inViewRef, inView } = useInView({
-    triggerOnce: once,
-    threshold: threshold,
-    rootMargin: margin,
-  });
-
-  // Create a ref for the motion div
-  const motionRef = useRef<HTMLDivElement>(null);
-
-  // Combine refs
-  const setRefs = (node: HTMLDivElement | null) => {
-    motionRef.current = node;
-    inViewRef(node);
-  };
 
   const getAnimationVariants = (): Variants => {
     const variants: Record<AnimationType, Variants> = {
@@ -179,20 +165,40 @@ const AnimationWrapper = ({
     }
   };
 
+  // Use Intersection Observer API directly
   useEffect(() => {
-    if (inView) {
-      controls.start("visible");
-    } else {
-      controls.start("hidden");
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          controls.start("visible");
+        } else if (!once) {
+          controls.start("hidden");
+        }
+      },
+      {
+        threshold: threshold,
+        rootMargin: margin,
+      }
+    );
+
+    const currentRef = ref.current;
+    if (currentRef) {
+      observer.observe(currentRef);
     }
-  }, [inView, controls]);
+
+    return () => {
+      if (currentRef) {
+        observer.unobserve(currentRef);
+      }
+    };
+  }, [controls, once, threshold, margin]);
 
   const variants = getAnimationVariants();
 
   if (staggerChildren) {
     return (
       <motion.div
-        ref={setRefs}
+        ref={ref}
         initial="hidden"
         animate={controls}
         variants={{
@@ -220,7 +226,7 @@ const AnimationWrapper = ({
 
   return (
     <motion.div
-      ref={setRefs}
+      ref={ref}
       initial="hidden"
       animate={controls}
       variants={variants}
