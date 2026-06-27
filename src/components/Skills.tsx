@@ -67,7 +67,7 @@ const Skills = () => {
                 className={`
                   px-4 py-2 rounded-full font-medium border-2 transition-all duration-300
                   ${getColor(item.accent)}
-                  ${isSelected ? 'shadow-lg scale-110 ring-2 ring-offset-2 ring-primary/50' : 'hover:shadow-md'}
+                  ${isSelected ? 'shadow-lg scale-110' : 'hover:shadow-md'}
                 `}
                 {...({ onClick: () => handleSkillSelect(item.skill) } as any)}
               >

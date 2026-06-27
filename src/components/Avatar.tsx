@@ -1,6 +1,6 @@
 // components/AvatarCarousel.tsx
 import Image from "next/image";
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 
 type AvatarImage = {
   id: string;
@@ -25,84 +25,146 @@ export default function AvatarCarousel({
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
   const [currentRotation, setCurrentRotation] = useState(0);
-  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [imagesLoaded, setImagesLoaded] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const autoRotateRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const touchStartX = useRef(0);
-  const touchEndX = useRef(0);
+  const isAnimating = useRef(false);
 
   const totalImages = images.length;
   const rotationAngle = 360 / totalImages;
 
-  // Calculate radius based on number of images
-  const getRadius = () => {
+  // Pre-calculate radius and base size
+  const radius = useMemo(() => {
     if (totalImages <= 3) return 140;
     if (totalImages <= 5) return 150;
     if (totalImages <= 8) return 160;
     return 170;
-  };
-
-  const radius = getRadius();
-
-  // Calculate sizes - memoized for performance
-  const getSize = useCallback((position: string) => {
-    const baseSize = Math.min(130, Math.max(90, 170 - totalImages * 2));
-
-    switch (position) {
-      case 'active': return `${baseSize}px`;
-      case 'near': return `${baseSize * 0.7}px`;
-      case 'far': return `${baseSize * 0.5}px`;
-      case 'farthest': return `${baseSize * 0.35}px`;
-      default: return `${baseSize * 0.25}px`;
-    }
   }, [totalImages]);
 
-  const getOpacity = useCallback((position: string) => {
-    switch (position) {
-      case 'active': return 1;
-      case 'near': return 0.8;
-      case 'far': return 0.5;
-      case 'farthest': return 0.3;
-      default: return 0.15;
+  const baseSize = useMemo(() => {
+    return Math.min(130, Math.max(90, 170 - totalImages * 2));
+  }, [totalImages]);
+
+  // Pre-calculate all image positions
+  const imagePositions = useMemo(() => {
+    return images.map((_, index) => {
+      const angle = (index / totalImages) * 360;
+      return { angle };
+    });
+  }, [images, totalImages]);
+
+  // Load images
+  useEffect(() => {
+    let loaded = 0;
+    const total = images.length;
+
+    images.forEach((image) => {
+      const img = new window.Image();
+      img.src = image.src;
+      img.onload = () => {
+        loaded++;
+        if (loaded === total) {
+          setImagesLoaded(true);
+        }
+      };
+      img.onerror = () => {
+        loaded++;
+        if (loaded === total) {
+          setImagesLoaded(true);
+        }
+      };
+    });
+
+    // Fallback: if images don't load within 5 seconds, start anyway
+    const timeout = setTimeout(() => {
+      if (!imagesLoaded) {
+        setImagesLoaded(true);
+      }
+    }, 5000);
+
+    return () => clearTimeout(timeout);
+  }, [images, imagesLoaded]);
+
+  // Memoized style calculations
+  const getImageStyle = useCallback((index: number) => {
+    let diff = index - activeIndex;
+    if (Math.abs(diff) > totalImages / 2) {
+      diff = diff > 0 ? diff - totalImages : diff + totalImages;
     }
-  }, []);
+    const absDistance = Math.abs(diff);
 
-  const getBlur = useCallback((position: string) => {
-    switch (position) {
-      case 'active': return 'none';
-      case 'near': return 'blur(0.5px)';
-      case 'far': return 'blur(1px)';
-      case 'farthest': return 'blur(1.5px)';
-      default: return 'blur(2px)';
+    let zIndex = 1;
+    let opacity = 0.1;
+    let blur = 'blur(3px)';
+    let size = baseSize * 0.2;
+    let border = 'border-gray-200 dark:border-gray-700';
+    let scale = 1;
+
+    if (absDistance === 0) {
+      zIndex = 10;
+      opacity = 1;
+      blur = 'none';
+      size = baseSize;
+      border = 'border-4 border-secondary dark:border-primary shadow-2xl shadow-secondary/40 dark:shadow-primary/40';
+      scale = 1.05;
+    } else if (absDistance === 1) {
+      zIndex = 5;
+      opacity = 0.85;
+      blur = 'blur(0.5px)';
+      size = baseSize * 0.7;
+      border = 'border-gray-400 dark:border-gray-500 hover:border-primary/50';
+    } else if (absDistance === 2) {
+      zIndex = 3;
+      opacity = 0.55;
+      blur = 'blur(1px)';
+      size = baseSize * 0.5;
+      border = 'border-gray-300 dark:border-gray-600';
+    } else if (absDistance === 3) {
+      zIndex = 2;
+      opacity = 0.35;
+      blur = 'blur(1.5px)';
+      size = baseSize * 0.35;
+      border = 'border-gray-200 dark:border-gray-700';
+    } else {
+      opacity = 0.05;
+      blur = 'blur(4px)';
+      size = baseSize * 0.15;
     }
-  }, []);
 
-  const getBorder = useCallback((position: string) => {
-    switch (position) {
-      case 'active': return 'border-4 border-secondary dark:border-primary shadow-2xl shadow-secondary/40 dark:shadow-primary/40';
-      case 'near': return 'border-gray-400 dark:border-gray-500 hover:border-primary/50';
-      case 'far': return 'border-gray-300 dark:border-gray-600';
-      default: return 'border-gray-200 dark:border-gray-700';
-    }
-  }, []);
+    const sizeStr = `${size}px`;
+    const halfSize = size / 2;
 
-  // Smooth rotation function with easing
-  const rotateToIndex = useCallback((index: number, animated = true) => {
-    if (isTransitioning) return;
+    return {
+      zIndex,
+      scale,
+      opacity,
+      blur,
+      size: sizeStr,
+      halfSize,
+      border,
+      isActive: absDistance === 0,
+    };
+  }, [activeIndex, totalImages, baseSize]);
 
-    setIsTransitioning(true);
+  // Smooth rotation
+  const rotateToIndex = useCallback((index: number) => {
+    if (isAnimating.current) return;
+    isAnimating.current = true;
+
     const targetAngle = -index * rotationAngle;
     setCurrentRotation(targetAngle);
     setActiveIndex(index);
 
-    // Reset transition state after animation completes
     setTimeout(() => {
-      setIsTransitioning(false);
-    }, 700); // Match the transition duration
-  }, [rotationAngle, isTransitioning]);
+      isAnimating.current = false;
+    }, 600);
+  }, [rotationAngle]);
 
-  // Auto-rotation with cleanup
+  // Auto-rotation
   useEffect(() => {
+    if (!imagesLoaded) return;
+
     if (!isHovering && !isDragging && totalImages > 0) {
       autoRotateRef.current = setInterval(() => {
         const nextIndex = (activeIndex + 1) % totalImages;
@@ -121,9 +183,9 @@ export default function AvatarCarousel({
         autoRotateRef.current = null;
       }
     };
-  }, [isHovering, isDragging, activeIndex, totalImages, autoRotateInterval, rotateToIndex]);
+  }, [isHovering, isDragging, activeIndex, totalImages, autoRotateInterval, rotateToIndex, imagesLoaded]);
 
-  // Handle mouse drag with better sensitivity
+  // Handle mouse drag
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     setIsDragging(true);
     setStartX(e.clientX);
@@ -133,7 +195,7 @@ export default function AvatarCarousel({
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
     if (!isDragging) return;
     const deltaX = e.clientX - startX;
-    if (Math.abs(deltaX) > 30) { // Reduced threshold for better responsiveness
+    if (Math.abs(deltaX) > 30) {
       if (deltaX > 0) {
         const prevIndex = (activeIndex - 1 + totalImages) % totalImages;
         rotateToIndex(prevIndex);
@@ -150,20 +212,19 @@ export default function AvatarCarousel({
     setIsHovering(false);
   }, []);
 
-  // Handle touch with better sensitivity
+  // Handle touch
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
     touchStartX.current = e.touches[0].clientX;
-    touchEndX.current = e.touches[0].clientX;
     setIsDragging(true);
     setIsHovering(true);
   }, []);
 
   const handleTouchMove = useCallback((e: React.TouchEvent) => {
     if (!isDragging) return;
-    touchEndX.current = e.touches[0].clientX;
-    const deltaX = touchEndX.current - touchStartX.current;
+    const currentX = e.touches[0].clientX;
+    const deltaX = currentX - touchStartX.current;
 
-    if (Math.abs(deltaX) > 30) { // Reduced threshold
+    if (Math.abs(deltaX) > 30) {
       if (deltaX > 0) {
         const prevIndex = (activeIndex - 1 + totalImages) % totalImages;
         rotateToIndex(prevIndex);
@@ -171,7 +232,7 @@ export default function AvatarCarousel({
         const nextIndex = (activeIndex + 1) % totalImages;
         rotateToIndex(nextIndex);
       }
-      touchStartX.current = touchEndX.current;
+      touchStartX.current = currentX;
     }
   }, [isDragging, activeIndex, totalImages, rotateToIndex]);
 
@@ -180,32 +241,26 @@ export default function AvatarCarousel({
     setIsHovering(false);
   }, []);
 
-  // Navigation functions
-  const goToPrev = useCallback(() => {
-    if (isTransitioning) return;
-    const prevIndex = (activeIndex - 1 + totalImages) % totalImages;
-    rotateToIndex(prevIndex);
-  }, [activeIndex, totalImages, rotateToIndex, isTransitioning]);
-
-  const goToNext = useCallback(() => {
-    if (isTransitioning) return;
-    const nextIndex = (activeIndex + 1) % totalImages;
-    rotateToIndex(nextIndex);
-  }, [activeIndex, totalImages, rotateToIndex, isTransitioning]);
-
   const goToImage = useCallback((index: number) => {
-    if (isTransitioning || index === activeIndex) return;
+    if (isAnimating.current || index === activeIndex) return;
     rotateToIndex(index);
-  }, [activeIndex, rotateToIndex, isTransitioning]);
+  }, [activeIndex, rotateToIndex]);
 
-  // Get distance with circular logic
-  const getDistance = useCallback((index: number) => {
-    let diff = index - activeIndex;
-    if (Math.abs(diff) > totalImages / 2) {
-      diff = diff > 0 ? diff - totalImages : diff + totalImages;
-    }
-    return diff;
-  }, [activeIndex, totalImages]);
+  // Loading state
+  if (!imagesLoaded) {
+    return (
+      <div className={`relative w-full max-w-4xl mx-auto ${className}`}>
+        <div className="flex items-center justify-center h-[350px] md:h-[400px]">
+          <div className="flex flex-col items-center gap-4">
+            <div className="w-12 h-12 border-4 border-secondary/30 dark:border-primary/30 border-t-secondary dark:border-t-primary rounded-full animate-spin" />
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Loading images...
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div
@@ -229,62 +284,40 @@ export default function AvatarCarousel({
           style={{
             transformStyle: "preserve-3d",
             transform: `rotateY(${currentRotation}deg)`,
-            transition: `transform ${isTransitioning ? '700ms' : '0ms'} cubic-bezier(0.25, 0.1, 0.25, 1)`,
+            transition: `transform 600ms cubic-bezier(0.25, 0.1, 0.25, 1)`,
+            willChange: 'transform',
           }}
         >
           {images.map((image, index) => {
-            const distance = getDistance(index);
-            const absDistance = Math.abs(distance);
-
-            let position = 'far';
-            if (absDistance === 0) position = 'active';
-            else if (absDistance === 1) position = 'near';
-            else if (absDistance === 2) position = 'far';
-            else if (absDistance === 3) position = 'farthest';
-            else position = 'hidden';
-
-            const angle = (index / totalImages) * 360;
-            const size = getSize(position);
-            const opacity = getOpacity(position);
-            const blur = getBlur(position);
-            const border = getBorder(position);
-
-            const isHidden = absDistance > 3 && totalImages > 6;
-            const shouldShow = totalImages <= 6 || !isHidden;
-
-            let zIndex = 1;
-            if (position === 'active') zIndex = 10;
-            else if (position === 'near') zIndex = 5;
-            else if (position === 'far') zIndex = 3;
-            else zIndex = 2;
-
-            const sizeNum = parseInt(size);
-            const halfSize = sizeNum / 2;
+            const style = getImageStyle(index);
+            const { angle } = imagePositions[index];
 
             return (
               <div
                 key={image.id}
-                className={`absolute top-1/2 left-1/2 cursor-pointer ${shouldShow ? 'visible' : 'hidden'}`}
+                className="absolute top-1/2 left-1/2 cursor-pointer"
                 style={{
                   transform: `rotateY(${angle}deg) translateZ(${radius}px)`,
                   transformStyle: "preserve-3d",
-                  width: size,
-                  height: size,
-                  marginLeft: `-${halfSize}px`,
-                  marginTop: `-${halfSize}px`,
-                  zIndex: zIndex,
-                  opacity: opacity,
-                  filter: blur,
+                  width: style.size,
+                  height: style.size,
+                  marginLeft: `-${style.halfSize}px`,
+                  marginTop: `-${style.halfSize}px`,
+                  zIndex: style.zIndex,
+                  opacity: style.opacity,
+                  filter: style.blur,
                   left: "50%",
                   top: "50%",
-                  transition: `all 700ms cubic-bezier(0.25, 0.1, 0.25, 1)`,
+                  transition: `all 600ms cubic-bezier(0.25, 0.1, 0.25, 1)`,
+                  willChange: 'transform, opacity, filter',
                 }}
                 onClick={() => goToImage(index)}
               >
                 <div
-                  className={`relative w-full h-full rounded-full overflow-hidden ${border} ${position === 'active' ? "scale-105" : ""}`}
+                  className={`relative w-full h-full rounded-full overflow-hidden ${style.border} ${style.isActive ? "scale-105" : ""}`}
                   style={{
                     transition: `all 500ms cubic-bezier(0.25, 0.1, 0.25, 1)`,
+                    willChange: 'transform',
                   }}
                 >
                   <Image
@@ -292,12 +325,14 @@ export default function AvatarCarousel({
                     alt={image.alt}
                     fill
                     className="object-cover"
-                    sizes={size}
-                    priority={position === 'active'}
-                    loading={position === 'active' ? 'eager' : 'lazy'}
+                    sizes={style.size}
+                    priority={style.isActive}
+                    loading={style.isActive ? 'eager' : 'lazy'}
+                    quality={style.isActive ? 90 : 70}
+                    draggable={false}
                   />
 
-                  {position === 'active' && (
+                  {style.isActive && (
                     <>
                       <div className="absolute -inset-3 rounded-full bg-white/20 blur-xl -z-10" />
                       <div className="absolute inset-0 bg-gradient-to-t from-primary/10 via-transparent to-transparent" />
@@ -305,7 +340,7 @@ export default function AvatarCarousel({
                   )}
                 </div>
 
-                {position === 'active' && image.title && (
+                {style.isActive && image.title && (
                   <div className="absolute -bottom-9 left-1/2 -translate-x-1/2 whitespace-nowrap">
                     <span className="text-xs font-medium text-gray-700 dark:text-gray-300 bg-white/90 dark:bg-gray-800/90 px-3 py-1 rounded-full backdrop-blur-sm shadow-lg">
                       {image.title}
