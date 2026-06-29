@@ -13,14 +13,12 @@ type AvatarCarouselProps = {
   images: AvatarImage[];
   className?: string;
   autoRotateInterval?: number;
-  initialDelay?: number; // Add delay before auto-rotation starts
 };
 
 export default function AvatarCarousel({
   images,
   className = "",
   autoRotateInterval = 2000,
-  initialDelay = 1000, // Wait 1s before starting auto-rotation
 }: AvatarCarouselProps) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [isHovering, setIsHovering] = useState(false);
@@ -28,12 +26,10 @@ export default function AvatarCarousel({
   const [startX, setStartX] = useState(0);
   const [currentRotation, setCurrentRotation] = useState(0);
   const [imagesLoaded, setImagesLoaded] = useState(false);
-  const [isInitialRotation, setIsInitialRotation] = useState(true);
   const containerRef = useRef<HTMLDivElement>(null);
   const autoRotateRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const touchStartX = useRef(0);
   const isAnimating = useRef(false);
-  const imageCache = useRef<Set<string>>(new Set());
 
   const totalImages = images.length;
   const rotationAngle = 360 / totalImages;
@@ -58,46 +54,26 @@ export default function AvatarCarousel({
     });
   }, [images, totalImages]);
 
-  // Preload images and cache them
+  // Load images
   useEffect(() => {
     let loaded = 0;
     const total = images.length;
-    const loadPromises: Promise<void>[] = [];
 
     images.forEach((image) => {
-      // Check if already cached
-      if (imageCache.current.has(image.src)) {
+      const img = new window.Image();
+      img.src = image.src;
+      img.onload = () => {
         loaded++;
         if (loaded === total) {
           setImagesLoaded(true);
         }
-        return;
-      }
-
-      const promise = new Promise<void>((resolve) => {
-        const img = new window.Image();
-        img.crossOrigin = "anonymous";
-        img.src = image.src;
-        
-        img.onload = () => {
-          imageCache.current.add(image.src);
-          loaded++;
-          if (loaded === total) {
-            setImagesLoaded(true);
-          }
-          resolve();
-        };
-        
-        img.onerror = () => {
-          loaded++;
-          if (loaded === total) {
-            setImagesLoaded(true);
-          }
-          resolve();
-        };
-      });
-
-      loadPromises.push(promise);
+      };
+      img.onerror = () => {
+        loaded++;
+        if (loaded === total) {
+          setImagesLoaded(true);
+        }
+      };
     });
 
     // Fallback: if images don't load within 5 seconds, start anyway
@@ -107,13 +83,10 @@ export default function AvatarCarousel({
       }
     }, 5000);
 
-    return () => {
-      clearTimeout(timeout);
-      loadPromises.forEach(p => p.catch(() => {}));
-    };
+    return () => clearTimeout(timeout);
   }, [images, imagesLoaded]);
 
-  // Memoized style calculations with performance optimizations
+  // Memoized style calculations
   const getImageStyle = useCallback((index: number) => {
     let diff = index - activeIndex;
     if (Math.abs(diff) > totalImages / 2) {
@@ -127,7 +100,6 @@ export default function AvatarCarousel({
     let size = baseSize * 0.2;
     let border = 'border-gray-200 dark:border-gray-700';
     let scale = 1;
-    let willChange = 'auto';
 
     if (absDistance === 0) {
       zIndex = 10;
@@ -136,14 +108,12 @@ export default function AvatarCarousel({
       size = baseSize;
       border = 'border-4 border-secondary dark:border-primary shadow-2xl shadow-secondary/40 dark:shadow-primary/40';
       scale = 1.05;
-      willChange = 'transform';
     } else if (absDistance === 1) {
       zIndex = 5;
       opacity = 0.85;
       blur = 'blur(0.5px)';
       size = baseSize * 0.7;
       border = 'border-gray-400 dark:border-gray-500 hover:border-primary/50';
-      willChange = 'transform';
     } else if (absDistance === 2) {
       zIndex = 3;
       opacity = 0.55;
@@ -174,53 +144,48 @@ export default function AvatarCarousel({
       halfSize,
       border,
       isActive: absDistance === 0,
-      willChange,
     };
   }, [activeIndex, totalImages, baseSize]);
 
-  // Optimized rotation with smoother transitions
-  const rotateToIndex = useCallback((index: number, immediate = false) => {
-    if (isAnimating.current && !immediate) return;
+  // Smooth rotation
+  const rotateToIndex = useCallback((index: number) => {
+    if (isAnimating.current) return;
     isAnimating.current = true;
 
     const targetAngle = -index * rotationAngle;
     setCurrentRotation(targetAngle);
     setActiveIndex(index);
-    setIsInitialRotation(false);
 
-    // Use requestAnimationFrame for smoother updates
-    requestAnimationFrame(() => {
-      setTimeout(() => {
-        isAnimating.current = false;
-      }, immediate ? 300 : 600);
-    });
+    setTimeout(() => {
+      isAnimating.current = false;
+    }, 600);
   }, [rotationAngle]);
 
-  // Auto-rotation with initial delay
+  // Auto-rotation
   useEffect(() => {
     if (!imagesLoaded) return;
 
-    // Start with a delay
-    const startDelay = setTimeout(() => {
-      if (!isHovering && !isDragging && totalImages > 0) {
-        // First rotation after delay
-        autoRotateRef.current = setInterval(() => {
-          const nextIndex = (activeIndex + 1) % totalImages;
-          rotateToIndex(nextIndex);
-        }, autoRotateInterval);
+    if (!isHovering && !isDragging && totalImages > 0) {
+      autoRotateRef.current = setInterval(() => {
+        const nextIndex = (activeIndex + 1) % totalImages;
+        rotateToIndex(nextIndex);
+      }, autoRotateInterval);
+    } else {
+      if (autoRotateRef.current) {
+        clearInterval(autoRotateRef.current);
+        autoRotateRef.current = null;
       }
-    }, initialDelay);
+    }
 
     return () => {
-      clearTimeout(startDelay);
       if (autoRotateRef.current) {
         clearInterval(autoRotateRef.current);
         autoRotateRef.current = null;
       }
     };
-  }, [imagesLoaded, isHovering, isDragging, activeIndex, totalImages, autoRotateInterval, rotateToIndex, initialDelay]);
+  }, [isHovering, isDragging, activeIndex, totalImages, autoRotateInterval, rotateToIndex, imagesLoaded]);
 
-  // Handle mouse drag with better performance
+  // Handle mouse drag
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     setIsDragging(true);
     setStartX(e.clientX);
@@ -230,13 +195,13 @@ export default function AvatarCarousel({
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
     if (!isDragging) return;
     const deltaX = e.clientX - startX;
-    if (Math.abs(deltaX) > 20) { // Reduced threshold for better responsiveness
+    if (Math.abs(deltaX) > 30) {
       if (deltaX > 0) {
         const prevIndex = (activeIndex - 1 + totalImages) % totalImages;
-        rotateToIndex(prevIndex, true);
+        rotateToIndex(prevIndex);
       } else {
         const nextIndex = (activeIndex + 1) % totalImages;
-        rotateToIndex(nextIndex, true);
+        rotateToIndex(nextIndex);
       }
       setStartX(e.clientX);
     }
@@ -247,7 +212,7 @@ export default function AvatarCarousel({
     setIsHovering(false);
   }, []);
 
-  // Handle touch with better performance
+  // Handle touch
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
     touchStartX.current = e.touches[0].clientX;
     setIsDragging(true);
@@ -259,13 +224,13 @@ export default function AvatarCarousel({
     const currentX = e.touches[0].clientX;
     const deltaX = currentX - touchStartX.current;
 
-    if (Math.abs(deltaX) > 20) {
+    if (Math.abs(deltaX) > 30) {
       if (deltaX > 0) {
         const prevIndex = (activeIndex - 1 + totalImages) % totalImages;
-        rotateToIndex(prevIndex, true);
+        rotateToIndex(prevIndex);
       } else {
         const nextIndex = (activeIndex + 1) % totalImages;
-        rotateToIndex(nextIndex, true);
+        rotateToIndex(nextIndex);
       }
       touchStartX.current = currentX;
     }
@@ -281,7 +246,7 @@ export default function AvatarCarousel({
     rotateToIndex(index);
   }, [activeIndex, rotateToIndex]);
 
-  // Loading state with skeleton
+  // Loading state
   if (!imagesLoaded) {
     return (
       <div className={`relative w-full max-w-4xl mx-auto ${className}`}>
@@ -319,7 +284,7 @@ export default function AvatarCarousel({
           style={{
             transformStyle: "preserve-3d",
             transform: `rotateY(${currentRotation}deg)`,
-            transition: `transform ${isInitialRotation ? '800ms' : '600ms'} cubic-bezier(0.25, 0.1, 0.25, 1)`,
+            transition: `transform 600ms cubic-bezier(0.25, 0.1, 0.25, 1)`,
             willChange: 'transform',
           }}
         >
@@ -343,8 +308,8 @@ export default function AvatarCarousel({
                   filter: style.blur,
                   left: "50%",
                   top: "50%",
-                  transition: `all ${style.isActive ? '500ms' : '400ms'} cubic-bezier(0.25, 0.1, 0.25, 1)`,
-                  willChange: style.willChange,
+                  transition: `all 600ms cubic-bezier(0.25, 0.1, 0.25, 1)`,
+                  willChange: 'transform, opacity, filter',
                 }}
                 onClick={() => goToImage(index)}
               >
@@ -361,11 +326,10 @@ export default function AvatarCarousel({
                     fill
                     className="object-cover"
                     sizes={style.size}
-                    priority={index < 3} // Preload first 3 images
-                    loading={index < 3 ? 'eager' : 'lazy'}
+                    priority={style.isActive}
+                    loading={style.isActive ? 'eager' : 'lazy'}
                     quality={style.isActive ? 90 : 70}
                     draggable={false}
-                    unoptimized={process.env.NODE_ENV === 'development'} // Optional: for faster dev
                   />
 
                   {style.isActive && (
