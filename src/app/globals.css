@@ -5,13 +5,13 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins&display=swap');
 
 @layer base {
-  *{
+  * {
     @apply font-sans
   }
 }
 
 @layer components {
-  body{
+  body {
     @apply bg-white text-black dark:bg-slate-900 dark:text-white
   }
 }
@@ -21,4 +21,28 @@
   .perspective-1000 {
     perspective: 1000px;
   }
+}
+
+.animate-shimmer {
+  background: linear-gradient(90deg,
+      #e5e7eb 0%,
+      /* gray-200 */
+      #f3f4f6 50%,
+      /* gray-100 */
+      #e5e7eb 100%
+      /* gray-200 */
+    );
+  background-size: 200% 100%;
+}
+
+.dark .animate-shimmer {
+  background: linear-gradient(90deg,
+      #374151 0%,
+      /* gray-700 */
+      #4b5563 50%,
+      /* gray-600 */
+      #374151 100%
+      /* gray-700 */
+    );
+  background-size: 200% 100%;
 }

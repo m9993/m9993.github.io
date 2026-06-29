@@ -169,6 +169,19 @@ export default {
   ],
   projects: [
     {
+      id: "becho",
+      name: "Becho - Simplifying Online Business Management in Bangladesh",
+      description:
+        "Becho was built to empower digital entrepreneurs in Bangladesh to manage their entire business from a single mobile app. Whether you're selling fashion, electronics, or groceries, Becho has you covered with tools that streamline daily operations, boost customer satisfaction, and grow your revenue.",
+      icon: "/projects/becho-logo-animation.gif",
+      playStoreLink:
+        "https://play.google.com/store/apps/details?id=com.becho",
+      webLink: "https://becho.store/",
+      technologies: ["Flutter", "Dart", "sqflite", "Getx"],
+      downloads: "1K+",
+      rating: 3.6,
+    },
+    {
       id: "attnd",
       name: "Attnd: Employee Attendance App",
       description:
