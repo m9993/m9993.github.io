@@ -19,23 +19,26 @@ export default function Hero(props: HeroType) {
       }
     >
 
-      <Reveal animation='zoom'>
-        <Avatar images={data.profileImages} />
+      <Reveal animation='rotate'>
+        <Avatar image={data.profileImage} />
       </Reveal>
 
-      <Reveal animation='slideUp' delay={0.5}><h1 className="font-mono mt-0 text-xl md:text-4xl">{data.name}</h1></Reveal>
+      <Reveal animation='zoom' delay={0.8}><h1 className="font-mono mt-7 text-xl md:text-4xl">{data.name}</h1></Reveal>
 
-      <Reveal animation="slideDown" delay={0.5}>
-        <p
-          className="text-center text-xs mt-1 w-80 md:text-base md:w-full md:mt-3"
-        >{data.subTitle}</p>
-      </Reveal>
+      <div
+        className="mt-1 w-80 md:w-2/4 md:mt-3">
+        <Reveal animation='blur' delay={1} duration={1}>
+          <p className="text-center text-xs md:text-base">
+            {data.subTitle}
+          </p>
+        </Reveal>
+      </div>
 
-      <Reveal animation="fade" delay={1.5}>
+      <Reveal animation='slideDown' delay={1.5}>
         <TypedText className="" />
       </Reveal>
 
-      <Reveal animation="slideUp" delay={1}>
+      <Reveal animation='scale' delay={2.5}>
         <SocialMedia className="my-10" />
       </Reveal>
     </div>

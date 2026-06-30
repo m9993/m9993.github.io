@@ -24,14 +24,14 @@ export default function Home() {
       <Hero className="h-screen relative z-10" />
 
       <div className="px-4">
-        <SectionTitle title="Educational" highlightedTitle="Background" className="mb-10" />
-        <Reveal animation='slideUp'>
-          <Education className="md:w-2/3 mx-auto" />
-        </Reveal>
-
-        <SectionTitle title="Technical" highlightedTitle="Skills" className="mb-10 mt-24" />
+        <SectionTitle title="Technical" highlightedTitle="Skills" className="mb-10" />
         <Reveal animation='zoom'>
           <Skills />
+        </Reveal>
+
+        <SectionTitle title="Educational" highlightedTitle="Background" className="mb-10 mt-24" />
+        <Reveal animation='slideUp'>
+          <Education className="md:w-2/3 mx-auto" />
         </Reveal>
 
         <SectionTitle
@@ -39,7 +39,7 @@ export default function Home() {
           highlightedTitle="Certifications"
           className="mb-10 mt-24"
         />
-        <Reveal animation='bounce'>
+        <Reveal animation='rotate'>
           <Certifications />
         </Reveal>
 
@@ -48,7 +48,7 @@ export default function Home() {
           highlightedTitle="Live Apps"
           className="mb-10 mt-24"
         />
-        <Reveal animation='bounce'>
+        <Reveal animation='slideUp'>
           <Projects />
         </Reveal>
 
@@ -57,7 +57,7 @@ export default function Home() {
           highlightedTitle="Touch"
           className="mb-10 mt-24"
         />
-        <Reveal animation='bounce'>
+        <Reveal animation='zoom'>
           <ContactInfo />
         </Reveal>
       </div>

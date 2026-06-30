@@ -12,6 +12,7 @@ export default {
     `I am a <strong>React Native Developer</strong>`,
     `I am a <strong>Web Developer</strong>`,
   ],
+  profileImage: "/profile/1.webp",
   profileImages: [
     { id: "0", src: "/profile/0.jpg", alt: "Profile" },
     { id: "1", src: "/profile/1.jpeg", alt: "Profile 1" },
