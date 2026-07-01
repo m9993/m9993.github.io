@@ -19,10 +19,10 @@ export default function Hero(props: HeroType) {
       }
     >
 
-      {/* <Reveal animation='rotate'>
+      <Reveal animation='rotate'>
         <Avatar image={data.profileImage} />
-      </Reveal> */}
-      <Avatar images={data.profileImages} />
+      </Reveal>
+      {/* <Avatar images={data.profileImages} /> */}
 
       <Reveal animation='zoom' delay={0.8}><h1 className="font-mono mt-7 text-xl md:text-4xl">{data.name}</h1></Reveal>
 
@@ -39,7 +39,7 @@ export default function Hero(props: HeroType) {
         <TypedText className="" />
       </Reveal>
 
-      <Reveal animation='scale' delay={2.5}>
+      <Reveal animation='zoom' delay={2} duration={1.5}>
         <SocialMedia className="my-10" />
       </Reveal>
     </div>
